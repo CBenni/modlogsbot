@@ -6,9 +6,10 @@ Bot that copies mod logs from twitch into discord.
 2. run `npm install`
 3. set up your config file
 4. run `node index.js` or `node index.js path/to/config/file.json`
+5. Go to `https://discordapp.com/oauth2/authorize?client_id=`discord client ID`&scope=bot&permissions=3072` and add it to your discord server.
 
 # Config file
-The config file is a JSON document that defines parameters for the bot and the channels it listens to. See settings.default.json for a template.
+The config file is a JSON document that defines parameters for the bot and the channels it listens to. See settings.default.json for a template. By default, it has to be called `settings.json`
 
 **DO NOT EDIT THE FILE WHILE THE BOT IS RUNNING, IT WILL GET OVERWRITTEN**
 
