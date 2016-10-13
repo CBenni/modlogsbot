@@ -1,0 +1,31 @@
+{
+    "discord": {
+        "client_id": "",
+        "token": "",
+        "prefix": "!",
+        "admins": []
+    },
+    "twitch": {
+        "pubsub_server": "wss://pubsub-edge.twitch.tv/v1",
+        "mod": {
+            "id": "",
+            "oauth": ""
+        },
+        "ignored": {
+            "users": ["moobot","nightbot","ohbot"],
+            "actions": ["timeout","ban"]
+        },
+        "client_id": ""
+    },
+    "listeners": [
+        {
+            "twitch": {
+                "channel_id": "",
+                "channel_name": ""
+            },
+            "discord": {
+                "channel_id": ""
+            }
+        }
+    ]
+}
