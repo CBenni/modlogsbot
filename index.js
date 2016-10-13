@@ -13,7 +13,7 @@ var client = new Discord.Client({
 
 
 
-const invitelink = 'https://discordapp.com/oauth2/authorize?client_id=' + settings.discord.client_id + '&scope=bot&permissions=19456';
+const invitelink = 'https://discordapp.com/oauth2/authorize?client_id=' + settings.discord.client_id + '&scope=bot&permissions=3072';
 
 // discord bot
 client.on('ready', function () {
