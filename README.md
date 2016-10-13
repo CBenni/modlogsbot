@@ -13,6 +13,7 @@ The config file is a JSON document that defines parameters for the bot and the c
 **DO NOT EDIT THE FILE WHILE THE BOT IS RUNNING, IT WILL GET OVERWRITTEN**
 
 You will need:
+
 1. A discord bot client ID and token
 2. A twitch account that is moderator in the channels that you plan to use, with its ID and any oauth (can have no scope whatsoever)
 
