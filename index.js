@@ -4,7 +4,8 @@ var fs = require('fs');
 var Discord = require('discord.js');
 var request = require('request');
 var websocket = require('ws');
-var settings = JSON.parse(fs.readFileSync(process.argv.slice(2).join(" ") || "settings.json","utf-8"));
+var settingsFile = process.argv.slice(2).join(" ") || "settings.json";
+var settings = JSON.parse(fs.readFileSync(settingsFile,"utf-8"));
 
 
 var client = new Discord.Client({
@@ -169,7 +170,7 @@ function sendReply(message, reply) {
 }
 
 function saveSettings() {
-	fs.writeFile("settings.json", JSON.stringify(settings, null, 4), (err)=>{
+	fs.writeFile(settingsFile, JSON.stringify(settings, null, 4), (err)=>{
 		if(err) console.error(err);
 	});
 }
