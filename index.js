@@ -31,6 +31,7 @@ client.on('message', function (message) {
 				let cmd = words[0];
 				if (commands[cmd]) {
 					words.shift();
+					console.log("Received command "+words.join(" "));
 					commands[cmd](message, words);
 				}
 			}
@@ -84,7 +85,7 @@ var commands = {
         sendReply(message, "command prefix: " + settings.discord.prefix + " - commands: " + Object.keys(commands).join(', '));
     },
     invite: function(message, words) {
-        sendReply(message, invitelink);
+        sendReply(message, "Bot invite link: "+invitelink+" - make sure user `"+settings.twitch.mod.name+"` is modded in the target channel");
     },
 	listen: function(message, words) {
 		if(words.length == 1) {
