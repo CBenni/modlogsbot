@@ -31,7 +31,7 @@ client.on('message', function (message) {
 				let cmd = words[0];
 				if (commands[cmd]) {
 					words.shift();
-					console.log("Received command "+words.join(" "));
+					console.log("Received command "+message.cleanContent);
 					commands[cmd](message, words);
 				}
 			}
