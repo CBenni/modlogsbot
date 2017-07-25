@@ -24,10 +24,6 @@ client.on('ready', function () {
 
 client.on('message', function (message) {
 	console.log("Received discord message: "+message.author.username+": "+message.cleanContent);
-	if(message.channel.guild) {
-		console.log("Guild features:")
-		console.log(message.channel.guild.features)
-	}
 	if(settings.discord.admins.indexOf(message.author.id) >= 0) {
 		if(message.cleanContent.startsWith(settings.discord.prefix)) {
 			let words = message.cleanContent.substring(settings.discord.prefix.length).match(/(?:[^\s"]+|"[^"]*")+/g);
