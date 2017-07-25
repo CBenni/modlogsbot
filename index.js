@@ -120,11 +120,12 @@ var commands = {
 	},
 	unlisten: function(channel, message, words) {
 		var listeners = [];
+		var channels = [];
 		if(words.length == 0) {
 			var listeners = discordChannelId2Listeners[channel.id];
 			for(var i=0;i<listeners.length;++i) {
 				// unlisten this listener
-				unlisten(listeners[i]);
+				channels.push(unlisten(listeners[i]));
 			}
 			saveSettings();
 		} else {
@@ -136,7 +137,7 @@ var commands = {
 						var listener = listeners[i];
 						if(listener.discord.channel_id == channel.id) {
 							// unlisten this listener
-							unlisten(listener);
+							channels.push(unlisten(listener));
 						}
 					}
 					saveSettings();
@@ -144,6 +145,8 @@ var commands = {
 				});
 			}
 		}
+		if(channels.length > 0) message.reply("No longer listening to mod logs from channel(s) "+channels.join(", "));
+		else message.reply("Not listening to mod logs from  any channel");
 	},
 	list: function(channel, message, words) {
 		// get listeners for this discord channel
@@ -235,7 +238,6 @@ function removeFromList(list, item) {
 }
 
 function unlisten(listener) {
-	client.channels.find("id", listener.discord.channel_id).sendMessage("No longer listening to mod logs from channel "+listener.twitch.channel_name);
 	var twitch_id = listener.twitch.channel_id;
 	if(twitchChannelId2Listeners[twitch_id]) {
 		removeFromList(twitchChannelId2Listeners[twitch_id], listener);
@@ -245,6 +247,7 @@ function unlisten(listener) {
 		removeFromList(discordChannelId2Listeners[discord_id], listener);
 	}
 	removeFromList(settings.listeners, listener);
+	return listener.twitch.channel_name;
 }
 
 function initPubSub(){
