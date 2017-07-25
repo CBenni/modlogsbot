@@ -169,7 +169,7 @@ var commands = {
 		if(channel && command) {
 			console.log("imping command "+words[1]+" in channel:")
 			console.log(channel);
-			command(otherchannel, message, words.slice(1));
+			command(otherchannel, message, words.slice(2));
 		} else {
 			if(!channel) message.reply("Channel not found.");
 			if(!command) message.reply("Command not found.");
