@@ -287,7 +287,12 @@ function initPubSub(){
 					if(action.moderation_action == "timeout" || action.moderation_action == "ban" || action.moderation_action == "unban" || action.moderation_action == "untimeout") {
 						text += "\nSee https://cbenni.com/"+listener.twitch.channel_name+"/?user="+action.args[0];
 					}
-					client.channels.find("id", listener.discord.channel_id).sendMessage(text);
+					var discordchannel = client.channels.find("id", listener.discord.channel_id);
+					if(discordchannel) {
+						discordchannel.sendMessage(text);
+					} else {
+						console.error("Could not find discord channel for listener "+JSON.stringify(listener));
+					}
 				}
 			}
 		}
