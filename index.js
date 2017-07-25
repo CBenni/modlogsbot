@@ -32,7 +32,7 @@ client.on('message', function (message) {
 				if (commands[cmd]) {
 					words.shift();
 					console.log("Received command "+message.cleanContent);
-					commands[cmd](message, words);
+					commands[cmd](message.channel, message, words);
 				}
 			}
 		}
@@ -81,15 +81,15 @@ function getChannelID(channelname, callback) {
 }
 
 var commands = {
-    help: function (message, words) {
+    help: function (channel, message, words) {
         sendReply(message, "command prefix: " + settings.discord.prefix + " - commands: " + Object.keys(commands).join(', '));
     },
-    invite: function(message, words) {
+    invite: function(channel, message, words) {
         sendReply(message, "Bot invite link: "+invitelink+" - make sure user `"+settings.twitch.mod.name+"` is modded in the target channel");
     },
-	listen: function(message, words) {
+	listen: function(channel, message, words) {
 		if(words.length == 1) {
-			console.log("Got command to listen to twitch channel "+words[0]+" in discord channel "+message.channel.id+".");
+			console.log("Got command to listen to twitch channel "+words[0]+" in discord channel "+channel.id+".");
 			var twitchChannel = words[0].toLowerCase();
 			getChannelID(twitchChannel, function(error, id) {
 				if(error || !id) {
@@ -102,7 +102,7 @@ var commands = {
 						"channel_name": twitchChannel
 					},
 					"discord": {
-						"channel_id": message.channel.id
+						"channel_id": channel.id
 					}
 				}
 				if(listen(listener)) {
@@ -118,10 +118,10 @@ var commands = {
 			message.reply("Usage: `"+settings.discord.prefix+"listen <channel>`");
 		}
 	},
-	unlisten: function(message, words) {
+	unlisten: function(channel, message, words) {
 		var listeners = [];
 		if(words.length == 0) {
-			var listeners = discordChannelId2Listeners[message.channel.id];
+			var listeners = discordChannelId2Listeners[channel.id];
 			for(var i=0;i<listeners.length;++i) {
 				// unlisten this listener
 				unlisten(listeners[i]);
@@ -134,20 +134,20 @@ var commands = {
 					var listeners = [].concat(twitchChannelId2Listeners[id]);
 					for(var i=0;i<listeners.length;++i) {
 						var listener = listeners[i];
-						if(listener.discord.channel_id == message.channel.id) {
+						if(listener.discord.channel_id == channel.id) {
 							// unlisten this listener
 							unlisten(listener);
 						}
 					}
 					saveSettings();
-					console.log("Got command to unlisten from twitch channel "+words[0]+" in discord channel "+message.channel.id+" - "+listeners.length+" listeners");
+					console.log("Got command to unlisten from twitch channel "+words[0]+" in discord channel "+channel.id+" - "+listeners.length+" listeners");
 				});
 			}
 		}
 	},
-	list: function(message, words) {
+	list: function(channel, message, words) {
 		// get listeners for this discord channel
-		var listeners = discordChannelId2Listeners[message.channel.id] || [];
+		var listeners = discordChannelId2Listeners[channel.id] || [];
 		var listenernames = [];
 		for(var i=0;i<listeners.length;++i) {
 			var listener = listeners[i];
@@ -159,6 +159,23 @@ var commands = {
 		}
 		else reply = "Not listening for any mod logs in here.";
 		message.reply(reply);
+	},
+	imp: function(channel, message, words) {
+		if(words.length < 2 || !/^\d+$/.test(words[0])) {
+			message.reply("Usage: "+settings.discord.prefix+"imp <channel id> <command>")
+		}
+		var otherchannel = client.channels.get(words[0]);
+		var command = commands[words[1].match(/\b\w+$/)[0]];
+		if(channel && command) {
+			console.log("imping command "+words[1]+" in channel:")
+			console.log(channel);
+			console.log("Guild features:")
+			console.log(channel.guild.features)
+			command(otherchannel, message, words.slice(1));
+		} else {
+			if(!channel) message.reply("Channel not found.");
+			if(!command) message.reply("Command not found.");
+		}
 	}
 };
 
