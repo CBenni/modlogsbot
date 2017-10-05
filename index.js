@@ -283,20 +283,34 @@ function initPubSub(){
 					var listener = listeners[i];
 					var text = action.created_by+" used command `/"+action.moderation_action+(action.args?" "+action.args.join(" "):"")+"`";
 					var listenersForThisDiscordChannel = discordChannelId2Listeners[listener.discord.channel_id];
+					var discordchannel = client.channels.find("id", listener.discord.channel_id);
 					if(listenersForThisDiscordChannel.length > 1) text += " in channel "+listener.twitch.channel_name;
 					if(action.moderation_action == "timeout" || action.moderation_action == "ban" || action.moderation_action == "unban" || action.moderation_action == "untimeout") {
-						text += "\nSee https://cbenni.com/"+listener.twitch.channel_name+"/?user="+action.args[0];
-					}
-					var discordchannel = client.channels.find("id", listener.discord.channel_id);
-					if(discordchannel) {
+					if(action.moderation_action == "unban") {
+							var url = "https://api.twitch.tv/kraken/users/" + action.target_user_id + "?api_version=5&client_id=" + settings.twitch.client_id;
+							request({
+    							url: url,
+   								json: true
+							}, function (error, response, body) {
+    							if (!error && response.statusCode === 200) {
+       								if(discordchannel) {
+										discordchannel.sendMessage(action.created_by+" used command `/"+action.moderation_action+ " " + body.name +"`\nSee https://cbenni.com/"+listener.twitch.channel_name+"/?user="+body.name);
+									} else {
+										console.error("Could not find discord channel for listener "+JSON.stringify(listener));
+									}
+    							}
+							}
+					)} else {
+					    text += "\nSee https://cbenni.com/"+listener.twitch.channel_name+"/?user="+action.args[0];
+					    if(discordchannel) {
 						discordchannel.sendMessage(text);
 					} else {
 						console.error("Could not find discord channel for listener "+JSON.stringify(listener));
 					}
+					}}
 				}
 			}
 		}
 		
 	});
 }
-
