@@ -4,6 +4,7 @@ var fs = require('fs');
 var Discord = require('discord.js');
 var request = require('request');
 var websocket = require('ws');
+var EventEmitter = require("events");
 var settingsFile = process.argv.slice(2).join(" ") || "settings.json";
 var settings = JSON.parse(fs.readFileSync(settingsFile,"utf-8"));
 
@@ -217,9 +218,7 @@ function listen(listener) {
 	else {
 		// we havent had this channel before, listen to it.
 		console.log("Listening to mod logs from channel "+listener.twitch.channel_name+" (ID "+listener.twitch.channel_id+")");
-		var command = JSON.stringify({"type":"LISTEN","data":{"topics":["chat_moderator_actions."+settings.twitch.mod.id+"."+listener.twitch.channel_id], "auth_token": settings.twitch.mod.oauth}});
-		console.log("Sending command on pubsub: "+command);
-		pubsub.send(command);
+		pubsub.listen("chat_moderator_actions."+settings.twitch.mod.id+"."+listener.twitch.channel_id);
 		twitchChannelId2Listeners[twitch_id] = [listener];
 	}
 	if(!discordChannelId2Listeners[discord_id]) {
@@ -250,23 +249,124 @@ function unlisten(listener) {
 	return listener.twitch.channel_name;
 }
 
+class pubsubClient extends EventEmitter {
+	// optional param for number of topics that are estimated to be connected to
+	constructor(estNumOfTopics) {
+		super();
+		this.connections = [];
+		// maps a topic to a connection that it is joined on
+		this.topics = {};
+
+		// create initial connections, one for every 50 topics
+		let connectionCount = Math.ceil((estNumOfTopics || 1)/50);
+		for(let i=0;i < connectionCount; ++i)
+			this.createConnection();
+	} 
+	
+	createConnection() {
+		let conn = new pubsubConnection(this.connections.length);
+		this.connections.push(conn);
+		conn.on("message", (msg)=>{
+			this.emit("message", msg);
+		});
+		return conn;
+	}
+
+	listen(topic) {
+		// if we are already listening to this topic, do nothing
+		if(this.topics[topic] === undefined) {
+			console.log("Listening to "+topic);
+		} else {
+			console.log("Already listening to "+topic);
+			return;
+		}
+		let connectionToUse = null;
+		let i = 0;
+		for(; i < this.connections.length; ++i) {
+			if(this.connections[i].topics.length < 50) {
+				connectionToUse = this.connections[i];
+				break;
+			}
+		}
+		if(!connectionToUse) {
+			connectionToUse = this.createConnection();
+		}
+		this.topics[topic] = i;
+		connectionToUse.listen(topic);
+	}
+
+	unlisten(topic) {
+		let connectionToUse = this.topics[topic];
+		if(connectionToUse === undefined) {
+			console.error(`Tried to unlisten from topic ${topic} that wasnt being listened to!`);
+		}
+		connectionToUse.unlisten(topic);
+		this.topics[topic] = null;
+	}
+}
+
+class pubsubConnection extends EventEmitter {
+	constructor(id) {
+		super();
+		console.log("Connecting to pubsub with connection #"+id);
+		this.id = id;
+		this.topics = [];
+		this.connected = false;
+		this.socket = null;
+		this.connect();
+	}
+
+	connect() {
+		this.socket = new websocket(settings.twitch.pubsub_server);
+
+		this.socket.on("open", ()=> {
+			console.log(`PubSub connection #${this.id} connected`);
+
+			this.connected = true;
+			this.send({"type":"LISTEN","data":{"topics": this.topics, "auth_token": settings.twitch.mod.oauth}});
+
+			setInterval(() => {
+				this.send({"type": "PING"});
+			}, 60*1000);
+		});
+
+		this.socket.on("message", (data)=>{
+			var msg = JSON.parse(data);
+			this.emit("message", msg);
+			console.log(`PubSub #${this.id} received message: ${data}`);
+		});
+	}
+
+	listen(topic) {
+		if(this.topics.length >= 50) throw "Too many topics!";
+		this.topics.push(topic);
+		if(this.connected)
+			this.send({"type":"LISTEN","data":{"topics":[topic], "auth_token": settings.twitch.mod.oauth}});
+	}
+
+	unlisten(topic) {
+		this.send({"type": "UNLISTEN", "data":{"topics":[topic], "auth_token": settings.twitch.mod.oauth}})
+		removeFromList(this.topics, topic);
+	}
+
+	send(command) {
+		let cmd = JSON.stringify(command);
+		console.log(`Sending command on pubsub #${this.id}: ${cmd}`);
+		this.socket.send(cmd);
+	}
+}
+
+
+
 function initPubSub(){
 	console.log("Initializing pubsub");
-	pubsub = new websocket(settings.twitch.pubsub_server);
+	pubsub = new pubsubClient(settings.listeners.length);
 	// twitch pubsub stuff
-	pubsub.on("open", function() {
-		console.log("PubSub connected");
-		for(var i=0;i<settings.listeners.length;++i) {
-			listen(settings.listeners[i]);
-		}
-		setInterval(function(){
-			pubsub.send(JSON.stringify({type: "PING"}));
-		}, 60*1000);
-	});
+	for(var i=0;i<settings.listeners.length;++i) {
+		listen(settings.listeners[i]);
+	}
 
-	pubsub.on("message", function(data) {
-		var msg = JSON.parse(data);
-		console.log("Pubsub received message: "+JSON.stringify(msg));
+	pubsub.on("message", function(msg) {
 		
 		// send the message to all channels if it was a chat mod action
 		if(msg.type == "MESSAGE") {
@@ -289,7 +389,7 @@ function initPubSub(){
 					}
 					var discordchannel = client.channels.find("id", listener.discord.channel_id);
 					if(discordchannel) {
-						discordchannel.sendMessage(text);
+						discordchannel.sendMessage((settings.discord.messagePrefix || "")+text);
 					} else {
 						console.error("Could not find discord channel for listener "+JSON.stringify(listener));
 					}
