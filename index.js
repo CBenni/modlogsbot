@@ -399,14 +399,16 @@ function initPubSub() {
 									}
 								}
 							})
+							// this case overrides default behavior, so we break out
+							return;
 						} else {
 							text += "\nSee https://cbenni.com/" + listener.twitch.channel_name + "/?user=" + action.args[0];
-							if (discordchannel) {
-								discordchannel.sendMessage((settings.discord.messagePrefix || "") + text);
-							} else {
-								console.error("Could not find discord channel for listener " + JSON.stringify(listener));
-							}
 						}
+					}
+					if (discordchannel) {
+						discordchannel.sendMessage((settings.discord.messagePrefix || "") + text);
+					} else {
+						console.error("Could not find discord channel for listener " + JSON.stringify(listener));
 					}
 				}
 			}
