@@ -42,3 +42,6 @@ Available commands are:
 - `!listen <channel>` - listens to the twitch channel "`channel`" in the current channel
 - `!unlisten [channel]` - unlistens from the channel "`channel`" in the current discord channel. If no channel is specified, it unlistens from all. If multiple are specified, it unlistens from all of them.
 - `!list` - gives a list of chanels the bot is listening to.
+
+# Contributions
+https://streamelements.com/tip/stylerdev
