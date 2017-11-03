@@ -8,6 +8,7 @@
     "twitch": {
         "pubsub_server": "wss://pubsub-edge.twitch.tv/v1",
         "mod": {
+            "name": "",
             "id": "",
             "oauth": ""
         },
