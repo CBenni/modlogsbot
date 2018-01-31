@@ -13,7 +13,7 @@
             "oauth": ""
         },
         "ignored": {
-            "users": ["moobot","nightbot","ohbot","hnlbot","anhkbot"],
+            "users": ["moobot","nightbot","ohbot","hnlbot","ankhbot"],
             "actions": ["timeout","ban"]
         },
         "client_id": ""
