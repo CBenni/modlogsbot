@@ -381,7 +381,7 @@ function initPubSub() {
 				for (var i = 0; i < listeners.length; ++i) {
 					var listener = listeners[i];
 					const now = new Date();
-					const timestamp = `${now.getHours}:${now.getMinutes}:${now.getSeconds}`;
+					const timestamp = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
 					var text = `${settings.discord.messagePrefix || ""} [${timestamp}] ${action.created_by} used command \`/${action.moderation_action}${(action.args ? " " + action.args.join(" ") : "")}\``;
 					var listenersForThisDiscordChannel = discordChannelId2Listeners[listener.discord.channel_id];
 					var discordchannel = client.channels.find("id", listener.discord.channel_id);
