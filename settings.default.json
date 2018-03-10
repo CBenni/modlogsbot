@@ -8,11 +8,12 @@
     "twitch": {
         "pubsub_server": "wss://pubsub-edge.twitch.tv/v1",
         "mod": {
+            "name": "",
             "id": "",
             "oauth": ""
         },
         "ignored": {
-            "users": ["moobot","nightbot","ohbot","hnlbot","anhkbot"],
+            "users": ["moobot","nightbot","ohbot","hnlbot"],
             "actions": ["timeout","ban"]
         },
         "client_id": ""
