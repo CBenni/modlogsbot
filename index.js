@@ -258,9 +258,7 @@ class pubsubClient extends EventEmitter {
 		this.topics = {};
 
 		// create initial connections, one for every 50 topics
-		let connectionCount = Math.ceil((estNumOfTopics || 1) / 50);
-		for (let i = 0; i < connectionCount; ++i)
-			this.createConnection();
+		this.createConnection();
 	}
 
 	createConnection() {
@@ -289,6 +287,7 @@ class pubsubClient extends EventEmitter {
 			}
 		}
 		if (!connectionToUse) {
+			console.log("Creating new connection for "+topic);
 			connectionToUse = this.createConnection();
 		}
 		this.topics[topic] = i;
@@ -357,6 +356,10 @@ class pubsubConnection extends EventEmitter {
 }
 
 
+function escapeDiscordString(str) {
+	return str.replace(/\\/g,'\\\\').replace(/_/g,'\\_').replace(/~/g,'\\~');
+}
+
 
 function initPubSub() {
 	console.log("Initializing pubsub");
@@ -382,7 +385,7 @@ function initPubSub() {
 					var listener = listeners[i];
 					const now = new Date();
 					const timestamp = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
-					var text = `${settings.discord.messagePrefix || ""} [${timestamp}] ${action.created_by} used command \`/${action.moderation_action}${(action.args ? " " + action.args.join(" ") : "")}\``;
+					var text = `${settings.discord.messagePrefix || ""} [${timestamp}] ${escapeDiscordString(action.created_by || "automod")} used command \`/${action.moderation_action}${(action.args ? " " + action.args.join(" ") : "")}\``;
 					var listenersForThisDiscordChannel = discordChannelId2Listeners[listener.discord.channel_id];
 					var discordchannel = client.channels.find("id", listener.discord.channel_id);
 
@@ -396,7 +399,7 @@ function initPubSub() {
 							}, function (error, response, body) {
 								if (!error && response.statusCode === 200) {
 									if (discordchannel) {
-										discordchannel.sendMessage(`${settings.discord.messagePrefix || ""} [${timestamp}] ${action.created_by} used command \`/${action.moderation_action} ${body.name} \n\`See https://cbenni.com/${listener.twitch.channel_name}/?user=${body.name}`);
+										discordchannel.sendMessage(`${settings.discord.messagePrefix || ""} [${timestamp}] ${escapeDiscordString(action.created_by || "automod")} used command \`/${action.moderation_action} ${body.name} \n\`See https://cbenni.com/${listener.twitch.channel_name}/?user=${body.name}`);
 									} else {
 										console.error("Could not find discord channel for listener " + JSON.stringify(listener));
 									}
