@@ -9,8 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^9.3.0",
-    "request": "^2.75.0",
-    "ws": "^1.1.1"
+    "discord.js": "^12.2.0",
+    "request": "^2.88.2",
+    "ws": "^7.3.1"
   }
 }
