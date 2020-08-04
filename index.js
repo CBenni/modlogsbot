@@ -391,7 +391,7 @@ function initPubSub() {
 					const timestamp = now.toUTCString();
 					var text = `${settings.discord.messagePrefix || ""} ${escapeDiscordString(action.created_by || "automod")} used command \`/${action.moderation_action}${(action.args ? " " + action.args.join(" ") : "")}\` at \`${timestamp}\``;
 					var listenersForThisDiscordChannel = discordChannelId2Listeners[listener.discord.channel_id];
-					var discordchannel = client.channels.cache.find("id", listener.discord.channel_id);
+					var discordchannel = client.channels.cache.find(ch => ch.id == listener.discord.channel_id);
 
 					if (listenersForThisDiscordChannel.length > 1) text += " in channel " + listener.twitch.channel_name;
 					if (action.moderation_action == "timeout" || action.moderation_action == "ban" || action.moderation_action == "unban" || action.moderation_action == "untimeout") {
