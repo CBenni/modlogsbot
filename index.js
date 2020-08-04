@@ -391,7 +391,7 @@ function initPubSub() {
 					const timestamp = now.toUTCString();
 					var text = `${settings.discord.messagePrefix || ""} ${escapeDiscordString(action.created_by || "automod")} used command \`/${action.moderation_action}${(action.args ? " " + action.args.join(" ") : "")}\` at \`${timestamp}\``;
 					var listenersForThisDiscordChannel = discordChannelId2Listeners[listener.discord.channel_id];
-					var discordchannel = client.channels.find("id", listener.discord.channel_id);
+					var discordchannel = client.channels.cache.find("id", listener.discord.channel_id);
 
 					if (listenersForThisDiscordChannel.length > 1) text += " in channel " + listener.twitch.channel_name;
 					if (action.moderation_action == "timeout" || action.moderation_action == "ban" || action.moderation_action == "unban" || action.moderation_action == "untimeout") {
@@ -403,7 +403,7 @@ function initPubSub() {
 							}, function (error, response, body) {
 								if (!error && response.statusCode === 200) {
 									if (discordchannel) {
-										discordchannel.sendMessage(`${settings.discord.messagePrefix || ""} ${escapeDiscordString(action.created_by || "automod")} used command \`/${action.moderation_action} ${body.name}\` at \`${timestamp}\` \n\See <https://twitch.tv/popout/${listener.twitch.channel_name}/viewercard/${body.name}>`);
+										discordchannel.send(`${settings.discord.messagePrefix || ""} ${escapeDiscordString(action.created_by || "automod")} used command \`/${action.moderation_action} ${body.name}\` at \`${timestamp}\` \n\See <https://twitch.tv/popout/${listener.twitch.channel_name}/viewercard/${body.name}>`);
 									} else {
 										console.error("Could not find discord channel for listener " + JSON.stringify(listener));
 									}
@@ -416,7 +416,7 @@ function initPubSub() {
 						}
 					}
 					if (discordchannel) {
-						discordchannel.sendMessage((settings.discord.messagePrefix || "") + text);
+						discordchannel.send((settings.discord.messagePrefix || "") + text);
 					} else {
 						console.error("Could not find discord channel for listener " + JSON.stringify(listener));
 					}
