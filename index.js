@@ -1,12 +1,12 @@
 "use strict";
 
-var fs = require('fs');
-var Discord = require('discord.js');
-var request = require('request');
-var websocket = require('ws');
-var EventEmitter = require("events");
-var settingsFile = process.argv.slice(2).join(" ") || "settings.json";
-var settings = JSON.parse(fs.readFileSync(settingsFile, "utf-8"));
+const fs = require('fs');
+const Discord = require('discord.js');
+const request = require('request');
+const websocket = require('ws');
+const EventEmitter = require("events");
+const settingsFile = process.argv.slice(2).join(" ") || "settings.json";
+const settings = JSON.parse(fs.readFileSync(settingsFile, "utf-8"));
 
 
 var client = new Discord.Client({
@@ -57,7 +57,10 @@ function getChannelID(channelname, callback) {
 		return;
 	}
 	request.get({
-		url: "https://api.twitch.tv/kraken/channels/" + channelname + "?client_id=" + settings.twitch.client_id
+		url: "https://api.twitch.tv/helix/users?login=" + channelname,
+		headers: {
+			'Client-ID': settings.twitch.client_id
+		}
 	}, function (e, r, body) {
 		if (e) {
 			console.error(e);
@@ -67,7 +70,7 @@ function getChannelID(channelname, callback) {
 			callback("Error: " + r.statusCode);
 		} else {
 			try {
-				var id = JSON.parse(body)._id;
+				var id = JSON.parse(body).data[0].id;
 				knownChannels[channelname] = id;
 				callback(null, id);
 			} catch (e) {
@@ -374,6 +377,7 @@ function initPubSub() {
 		if (msg.type == "MESSAGE") {
 			var topicsplit = msg.data.topic.split(".");
 			var type = topicsplit[0];
+			let logOptions = {json: true};
 			if (type == "chat_moderator_actions") {
 				var action = JSON.parse(msg.data.message).data;
 				var listeners = twitchChannelId2Listeners[topicsplit[2]];
@@ -384,7 +388,8 @@ function initPubSub() {
 				for (var i = 0; i < listeners.length; ++i) {
 					var listener = listeners[i];
 					const now = new Date();
-					var text = `${settings.discord.messagePrefix || ""} ${escapeDiscordString(action.created_by || "automod")} used command \`/${action.moderation_action}${(action.args ? " " + action.args.join(" ") : "")}\``;
+					const timestamp = now.toUTCString();
+					var text = `${settings.discord.messagePrefix || ""} ${escapeDiscordString(action.created_by || "automod")} used command \`/${action.moderation_action}${(action.args ? " " + action.args.join(" ") : "")}\` at \`${timestamp}\``;
 					var listenersForThisDiscordChannel = discordChannelId2Listeners[listener.discord.channel_id];
 					var discordchannel = client.channels.find("id", listener.discord.channel_id);
 
@@ -398,7 +403,7 @@ function initPubSub() {
 							}, function (error, response, body) {
 								if (!error && response.statusCode === 200) {
 									if (discordchannel) {
-										discordchannel.sendMessage(`${settings.discord.messagePrefix || ""} ${escapeDiscordString(action.created_by || "automod")} used command \`/${action.moderation_action} ${body.name} \n\`See https://cbenni.com/${listener.twitch.channel_name}/?user=${body.name}`);
+										discordchannel.sendMessage(`${settings.discord.messagePrefix || ""} ${escapeDiscordString(action.created_by || "automod")} used command \`/${action.moderation_action} ${body.name}\` at \`${timestamp}\` \n\See <https://twitch.tv/popout/${listener.twitch.channel_name}/viewercard/${body.name}>`);
 									} else {
 										console.error("Could not find discord channel for listener " + JSON.stringify(listener));
 									}
@@ -407,7 +412,7 @@ function initPubSub() {
 							// this case overrides default behavior, so we break out
 							return;
 						} else {
-							text += "\nSee https://cbenni.com/" + listener.twitch.channel_name + "/?user=" + action.args[0];
+							text += `\nSee <https://twitch.tv/popout/${listener.twitch.channel_name}/viewercard/${action.args[0]}>`;
 						}
 					}
 					if (discordchannel) {
