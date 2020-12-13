@@ -15,7 +15,7 @@ var client = new Discord.Client({
 
 
 
-const invitelink = 'https://discordapp.com/oauth2/authorize?client_id=' + settings.discord.client_id + '&scope=bot&permissions=3072';
+const invitelink = `https://discordapp.com/oauth2/authorize?client_id=${settings.discord.client_id}&scope=bot&permissions=3072`;
 
 // discord bot
 client.on('ready', function () {
@@ -24,7 +24,7 @@ client.on('ready', function () {
 });
 
 client.on('message', function (message) {
-	console.log("Received discord message: " + message.author.username + ": " + message.cleanContent);
+	console.log(`Received discord message: ${message.author.username}: ${message.cleanContent}`);
 	if (settings.discord.admins.indexOf(message.author.id) >= 0) {
 		if (message.cleanContent.startsWith(settings.discord.prefix)) {
 			let words = message.cleanContent.substring(settings.discord.prefix.length).match(/(?:[^\s"]+|"[^"]*")+/g);
@@ -32,7 +32,7 @@ client.on('message', function (message) {
 				let cmd = words[0];
 				if (commands[cmd]) {
 					words.shift();
-					console.log("Received command " + message.cleanContent);
+					console.log(`Received command ${message.cleanContent}`);
 					commands[cmd](message.channel, message, words);
 				}
 			}
@@ -57,7 +57,7 @@ function getChannelID(channelname, callback) {
 		return;
 	}
 	request.get({
-		url: "https://api.twitch.tv/helix/users?login=" + channelname,
+		url: `https://api.twitch.tv/helix/users?login=${channelname}`,
 		headers: {
 			'Client-ID': settings.twitch.client_id
 		}
@@ -66,43 +66,44 @@ function getChannelID(channelname, callback) {
 			console.error(e);
 			callback(e);
 		} else if (body === undefined) {
-			console.error("Error: " + r.statusCode);
-			callback("Error: " + r.statusCode);
+			console.error(`Error: ${r.statusCode}`);
+			callback(`Error: ${r.statusCode}`);
 		} else {
 			try {
 				var id = JSON.parse(body).data[0].id;
 				knownChannels[channelname] = id;
 				callback(null, id);
 			} catch (e) {
-				console.error("Error: " + e + " in getChannelID(" + channelname + ").");
+				console.error(`Error: ${e} in getChannelID(${channelname}).`);
 				if (callback) callback(e);
 			}
 		}
 	}, function (error) {
-		console.error("Couldnt load " + channelname + "'s channel ID.\nError: " + error);
+		console.error(`Couldnt load ${channelname}'s channel ID.
+Error: ${error}`);
 		if (callback) callback(error);
 	});
 }
 
 var commands = {
 	help: function (channel, message, words) {
-		sendReply(message, "command prefix: " + settings.discord.prefix + " - commands: " + Object.keys(commands).join(', '));
+		sendReply(message, `command prefix: ${settings.discord.prefix} - commands: ${Object.keys(commands).join(', ')}`);
 	},
 	invite: function (channel, message, words) {
-		sendReply(message, "Bot invite link: " + invitelink + " - make sure user `" + settings.twitch.mod.name + "` is modded in the target channel");
+		sendReply(message, `Bot invite link: ${invitelink} - make sure user \`${settings.twitch.mod.name}\` is modded in the target channel`);
 	},
 	listen: function (channel, message, words) {
 		if (words.length == 1) {
-			console.log("Got command to listen to twitch channel " + words[0] + " in discord channel " + channel.id + ".");
+			console.log(`Got command to listen to twitch channel ${words[0]} in discord channel ${channel.id}.`);
 			var twitchChannel = words[0].toLowerCase();
 			getChannelID(twitchChannel, function (error, id) {
 				if (error || !id) {
-					message.reply("An error occurred processing your request: " + (error || "no id returned o.O"));
+					message.reply(`An error occurred processing your request: ${error || "no id returned o.O"}`);
 					return;
 				}
 				var listener = {
 					"twitch": {
-						"channel_id": "" + id,
+						"channel_id": `${id}`,
 						"channel_name": twitchChannel
 					},
 					"discord": {
@@ -110,16 +111,16 @@ var commands = {
 					}
 				}
 				if (listen(listener)) {
-					message.reply("Now listening to mod logs for channel " + twitchChannel);
+					message.reply(`Now listening to mod logs for channel ${twitchChannel}`);
 					// save the listener
 					settings.listeners.push(listener);
 					saveSettings();
 				} else {
-					message.reply("Already listening to mod logs from channel " + twitchChannel + " in this channel.");
+					message.reply(`Already listening to mod logs from channel ${twitchChannel} in this channel.`);
 				}
 			});
 		} else {
-			message.reply("Usage: `" + settings.discord.prefix + "listen <channel>`");
+			message.reply(`Usage: \`${settings.discord.prefix}listen <channel>\``);
 		}
 	},
 	unlisten: function (channel, message, words) {
@@ -145,11 +146,11 @@ var commands = {
 						}
 					}
 					saveSettings();
-					console.log("Got command to unlisten from twitch channel " + words[0] + " in discord channel " + channel.id + " - " + listeners.length + " listeners");
+					console.log(`Got command to unlisten from twitch channel ${words[0]} in discord channel ${channel.id} - ${listeners.length} listeners`);
 				});
 			}
 		}
-		if (channels.length > 0) message.reply("No longer listening to mod logs from channel(s) " + channels.join(", "));
+		if (channels.length > 0) message.reply(`No longer listening to mod logs from channel(s) ${channels.join(", ")}`);
 		else message.reply("Not listening to mod logs from  any channel");
 	},
 	list: function (channel, message, words) {
@@ -162,19 +163,19 @@ var commands = {
 		}
 		var reply;
 		if (listenernames.length > 0) {
-			reply = "Listening for mod logs for the channels " + listenernames.join(", ");
+			reply = `Listening for mod logs for the channels ${listenernames.join(", ")}`;
 		}
 		else reply = "Not listening for any mod logs in here.";
 		message.reply(reply);
 	},
 	imp: function (channel, message, words) {
 		if (words.length < 2 || !/^\d+$/.test(words[0])) {
-			message.reply("Usage: " + settings.discord.prefix + "imp <channel id> <command>")
+			message.reply(`Usage: ${settings.discord.prefix}imp <channel id> <command>`)
 		}
 		var otherchannel = client.channels.get(words[0]);
 		var command = commands[words[1].match(/\b\w+$/)[0]];
 		if (channel && command) {
-			console.log("imping command " + words[1] + " in channel:")
+			console.log(`imping command ${words[1]} in channel:`)
 			console.log(channel);
 			command(otherchannel, message, words.slice(2));
 		} else {
@@ -215,13 +216,13 @@ function listen(listener) {
 	}
 
 	if (twitchChannelId2Listeners[twitch_id]) {
-		console.log("Adding a listener for channel  " + listener.twitch.channel_name + " (ID " + listener.twitch.channel_id + ") for discord channel " + listener.discord.channel_id);
+		console.log(`Adding a listener for channel  ${listener.twitch.channel_name} (ID ${listener.twitch.channel_id}) for discord channel ${listener.discord.channel_id}`);
 		twitchChannelId2Listeners[twitch_id].push(listener);
 	}
 	else {
 		// we havent had this channel before, listen to it.
-		console.log("Listening to mod logs from channel " + listener.twitch.channel_name + " (ID " + listener.twitch.channel_id + ")");
-		pubsub.listen("chat_moderator_actions." + settings.twitch.mod.id + "." + listener.twitch.channel_id);
+		console.log(`Listening to mod logs from channel ${listener.twitch.channel_name} (ID ${listener.twitch.channel_id})`);
+		pubsub.listen(`chat_moderator_actions.${settings.twitch.mod.id}.${listener.twitch.channel_id}`);
 		twitchChannelId2Listeners[twitch_id] = [listener];
 	}
 	if (!discordChannelId2Listeners[discord_id]) {
@@ -276,9 +277,9 @@ class pubsubClient extends EventEmitter {
 	listen(topic) {
 		// if we are already listening to this topic, do nothing
 		if (this.topics[topic] === undefined) {
-			console.log("Listening to " + topic);
+			console.log(`Listening to ${topic}`);
 		} else {
-			console.log("Already listening to " + topic);
+			console.log(`Already listening to ${topic}`);
 			return;
 		}
 		let connectionToUse = null;
@@ -290,7 +291,7 @@ class pubsubClient extends EventEmitter {
 			}
 		}
 		if (!connectionToUse) {
-			console.log("Creating new connection for "+topic);
+			console.log(`Creating new connection for ${topic}`);
 			connectionToUse = this.createConnection();
 		}
 		this.topics[topic] = i;
@@ -310,7 +311,7 @@ class pubsubClient extends EventEmitter {
 class pubsubConnection extends EventEmitter {
 	constructor(id) {
 		super();
-		console.log("Connecting to pubsub with connection #" + id);
+		console.log(`Connecting to pubsub with connection #${id}`);
 		this.id = id;
 		this.topics = [];
 		this.connected = false;
@@ -381,7 +382,7 @@ function initPubSub() {
 			if (type == "chat_moderator_actions") {
 				var action = JSON.parse(msg.data.message).data;
 				var listeners = twitchChannelId2Listeners[topicsplit[2]];
-				console.log("Got a channel modlog for channel " + topicsplit[2] + " for " + listeners.length + " listeners");
+				console.log(`Got a channel modlog for channel ${topicsplit[2]} for ${listeners.length} listeners`);
 				if (settings.twitch.ignored.users.indexOf(action.created_by) >= 0 && settings.twitch.ignored.actions.indexOf(action.moderation_action) >= 0) {
 					return;
 				}
@@ -396,7 +397,7 @@ function initPubSub() {
 					if (listenersForThisDiscordChannel.length > 1) text += " in channel " + listener.twitch.channel_name;
 					if (action.moderation_action == "timeout" || action.moderation_action == "ban" || action.moderation_action == "unban" || action.moderation_action == "untimeout") {
 						if (action.moderation_action == "unban") {
-							var url = "https://api.twitch.tv/kraken/users/" + action.target_user_id + "?api_version=5&client_id=" + settings.twitch.client_id;
+							var url = `https://api.twitch.tv/kraken/users/${action.target_user_id}?api_version=5&client_id=${settings.twitch.client_id}`;
 							request({
 								url: url,
 								json: true
@@ -405,7 +406,7 @@ function initPubSub() {
 									if (discordchannel) {
 										discordchannel.send(`${settings.discord.messagePrefix || ""} ${escapeDiscordString(action.created_by || "automod")} used command \`/${action.moderation_action} ${body.name}\` at \`${timestamp}\` \n\See <https://twitch.tv/popout/${listener.twitch.channel_name}/viewercard/${body.name}>`);
 									} else {
-										console.error("Could not find discord channel for listener " + JSON.stringify(listener));
+										console.error(`Could not find discord channel for listener ${JSON.stringify(listener)}`);
 									}
 								}
 							})
@@ -418,7 +419,7 @@ function initPubSub() {
 					if (discordchannel) {
 						discordchannel.send((settings.discord.messagePrefix || "") + text);
 					} else {
-						console.error("Could not find discord channel for listener " + JSON.stringify(listener));
+						console.error(`Could not find discord channel for listener ${JSON.stringify(listener)}`);
 					}
 				}
 			}
