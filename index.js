@@ -59,7 +59,8 @@ function getChannelID(channelname, callback) {
 	request.get({
 		url: `https://api.twitch.tv/helix/users?login=${channelname}`,
 		headers: {
-			'Client-ID': settings.twitch.client_id
+			'Client-ID': settings.twitch.client_id,
+			'Authorization': `Bearer ${settings.twitch.mod.oauth}`
 		}
 	}, function (e, r, body) {
 		if (e) {
