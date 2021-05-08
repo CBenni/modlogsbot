@@ -2,10 +2,11 @@
 Bot that copies mod logs from twitch into discord.
 
 ## Installation
-1. Install node.js
-2. run `npm install`
+1. Install node.js: https://github.com/nodesource/distributions/blob/master/README.md#installation-instructions
+2. Install yarn: `npm install --global yarn`
+2. run `yarn`
 3. set up your config file
-4. run `node index.js` or `node index.js path/to/config/file.json`
+4. run `yarn node index.js` or `yarn node index.js path/to/config/file.json`
 5. Go to `https://discordapp.com/oauth2/authorize?client_id=`discord client ID`&scope=bot&permissions=3072` and add it to your discord server.
 
 # Config file
