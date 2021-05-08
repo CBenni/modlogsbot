@@ -26,9 +26,13 @@ coverage
 # Compiled binary addons (http://nodejs.org/api/addons.html)
 build/Release
 
-# Dependency directories
-node_modules
-jspm_packages
+# Yarn
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
 
 # Optional npm cache directory
 .npm
